@@ -1,0 +1,19 @@
+@model FirstWebApplication.Models.ObstacleData
+@{
+    ViewData["Title"] = "Overview";
+}
+<main class="min-h-screen bg-gray-50">
+  <div class="mx-auto max-w-xl px-4 py-10 sm:py-16">
+    <h1 class="text-2xl sm:text-3xl font-semibold text-gray-900 mb-6">Obstacle Overview</h1>
+
+    <div class="grid gap-4 bg-white p-6 rounded-xl shadow">
+      <p><span class="font-semibold">Name:</span> @Model.ObstacleName</p>
+      <p><span class="font-semibold">Height:</span> @Model.ObstacleHeight</p>
+      <p><span class="font-semibold">Description:</span> @Model.ObstacleDescription</p>
+    </div>
+
+    <div class="mt-6">
+      <a asp-controller="Obstacle" asp-action="DataForm" class="text-blue-600 underline">Register another</a>
+    </div>
+  </div>
+</main>

@@ -1,0 +1,43 @@
+@model FirstWebApplication.Models.ObstacleData
+@{
+    ViewData["Title"] = "Register Obstacle";
+}
+
+<main class="min-h-screen bg-gray-50">
+  <div class="mx-auto max-w-xl px-4 py-10 sm:py-16">
+    <h1 class="text-2xl sm:text-3xl font-semibold text-gray-900 mb-6">Register Obstacle</h1>
+
+    <!-- Oppsummering av valideringsfeil på toppen -->
+    <div asp-validation-summary="ModelOnly" class="mb-4 text-sm text-red-700"></div>
+
+    <form asp-action="DataForm" method="post" class="space-y-5 bg-white p-6 rounded-xl shadow">
+
+      <div>
+        <label asp-for="ObstacleName" class="block text-sm font-medium text-gray-700"></label>
+        <input asp-for="ObstacleName" class="mt-1 block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" />
+        <span asp-validation-for="ObstacleName" class="text-sm text-red-600"></span>
+      </div>
+
+      <div>
+        <label asp-for="ObstacleHeight" class="block text-sm font-medium text-gray-700"></label>
+        <input asp-for="ObstacleHeight" class="mt-1 block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" />
+        <span asp-validation-for="ObstacleHeight" class="text-sm text-red-600"></span>
+      </div>
+
+      <div>
+        <label asp-for="ObstacleDescription" class="block text-sm font-medium text-gray-700"></label>
+        <input asp-for="ObstacleDescription" class="mt-1 block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" />
+        <span asp-validation-for="ObstacleDescription" class="text-sm text-red-600"></span>
+      </div>
+
+      <button type="submit" class="w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        Submit Data
+      </button>
+    </form>
+
+    @section Scripts {
+      <!-- Klientvalidering (jQuery Validate + unobtrusive) -->
+      <partial name="_ValidationScriptsPartial" />
+    }
+  </div>
+</main>
