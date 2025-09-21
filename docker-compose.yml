@@ -12,7 +12,7 @@ services:
 
   web:
     build:
-      context: ./FirstWebApplication
+      context: .
       dockerfile: Dockerfile
     image: firstwebapplication:dev
     container_name: firstwebappcontainer
@@ -23,6 +23,7 @@ services:
       - ConnectionStrings__DefaultConnection=server=mariadb;port=3306;database=appdb;user=root;password=070702;SslMode=None
     ports:
       - "5000:8080"
+
 
 volumes:
   mariadb_data:
