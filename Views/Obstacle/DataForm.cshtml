@@ -30,6 +30,16 @@
         <span asp-validation-for="ObstacleDescription" class="text-sm text-red-600"></span>
       </div>
 
+      <!-- Kartet under beskrivelse -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Map – where is the obstacle?</label>
+        <div id="map" class="mt-2 rounded-xl border border-gray-200" style="height:420px;"></div>
+      </div>
+
+      <!-- Skjult felt som sendes inn -->
+      <input type="hidden" asp-for="GeometryGeoJson" id="GeometryGeoJson" />
+      <span asp-validation-for="GeometryGeoJson" class="text-sm text-red-600"></span>
+
       <button type="submit" class="w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
         Submit Data
       </button>
@@ -38,6 +48,58 @@
     @section Scripts {
       <!-- Klientvalidering (jQuery Validate + unobtrusive) -->
       <partial name="_ValidationScriptsPartial" />
+
+      <script>
+        // 1) Initier kart (sett fornuftig startposisjon/zoom for ditt område)
+        const map = L.map('map').setView([58.1467, 7.9956], 12);
+
+        // 2) Bakgrunnskart (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 20,
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // 3) FeatureGroup for tegninger
+        const drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+
+        // 4) Tegneverktøy (tillat det du trenger)
+        const drawControl = new L.Control.Draw({
+          edit: { featureGroup: drawnItems, remove: true },
+          draw: {
+            marker: true,
+            polygon: true,
+            polyline: true,
+            rectangle: true,
+            circle: false,
+            circlemarker: false
+          }
+        });
+        map.addControl(drawControl);
+
+        // 5) Synk til skjult felt (GeoJSON FeatureCollection)
+        function syncGeoJsonField(){
+          const fc = drawnItems.toGeoJSON();
+          document.getElementById('GeometryGeoJson').value = JSON.stringify(fc);
+        }
+
+        map.on(L.Draw.Event.CREATED, e => { drawnItems.addLayer(e.layer); syncGeoJsonField(); });
+        map.on(L.Draw.Event.EDITED,  syncGeoJsonField);
+        map.on(L.Draw.Event.DELETED, syncGeoJsonField);
+
+        // 6) (Valgfritt) last eksisterende GeoJSON dersom feltet har verdi (edit-scenarier)
+        const existing = document.getElementById('GeometryGeoJson').value;
+        if (existing) {
+          try {
+            const gj = JSON.parse(existing);
+            const layer = L.geoJSON(gj);
+            layer.eachLayer(l => drawnItems.addLayer(l));
+            if (layer.getLayers().length > 0) map.fitBounds(layer.getBounds(), { padding: [20, 20] });
+          } catch (err) {
+            console.warn('Kunne ikke lese eksisterende GeoJSON', err);
+          }
+        }
+      </script>
     }
   </div>
 </main>

@@ -13,5 +13,7 @@ namespace FirstWebApplication.Models
 
         [StringLength(200, ErrorMessage = "Description must be at most 200 characters")]
         public string ObstacleDescription { get; set; } = string.Empty;
+
+        public string? GeometryGeoJson { get; set; }
     }
 }

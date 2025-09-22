@@ -22,6 +22,9 @@ namespace FirstWebApplication.Controllers
                 return View(obstacleData);
             }
 
+            // Her vil obstacleData.GeometryGeoJson inneholde en GeoJSON FeatureCollection (string)
+            // Klar til å lagres i DB om du ønsker.
+
             // Gyldig -> gå til oversikt med data
             return View("Overview", obstacleData);
         }
