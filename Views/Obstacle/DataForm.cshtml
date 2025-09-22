@@ -32,12 +32,16 @@
 
       <!-- Kartet under beskrivelse -->
       <div>
-        <label class="block text-sm font-medium text-gray-700">Map – where is the obstacle?</label>
+        <label class="block text-sm font-medium text-gray-700">Kart – tegn hvor hindringen er</label>
         <div id="map" class="mt-2 rounded-xl border border-gray-200" style="height:420px;"></div>
       </div>
 
-      <!-- Skjult felt som sendes inn -->
+      <!-- Skjulte felter som sendes inn -->
       <input type="hidden" asp-for="GeometryGeoJson" id="GeometryGeoJson" />
+      <input type="hidden" asp-for="Latitude" id="Latitude" />
+      <input type="hidden" asp-for="Longitude" id="Longitude" />
+      <!-- NYTT: alle markør-koordinater som JSON -->
+      <input type="hidden" asp-for="MarkerCoordinatesJson" id="MarkerCoordinatesJson" />
       <span asp-validation-for="GeometryGeoJson" class="text-sm text-red-600"></span>
 
       <button type="submit" class="w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -50,55 +54,100 @@
       <partial name="_ValidationScriptsPartial" />
 
       <script>
-        // 1) Initier kart (sett fornuftig startposisjon/zoom for ditt område)
+        // 1) Init kart
         const map = L.map('map').setView([58.1467, 7.9956], 12);
-
-        // 2) Bakgrunnskart (OpenStreetMap)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 20,
-          attribution: '&copy; OpenStreetMap contributors'
+          maxZoom: 20, attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // 3) FeatureGroup for tegninger
+        // 2) Koordinat-readout under kartet
+        const readout = document.createElement('div');
+        readout.className = 'text-xs text-gray-600 mt-2';
+        readout.id = 'coordReadout';
+        document.getElementById('map').after(readout);
+
+        // 3) FeatureGroup + draw
         const drawnItems = new L.FeatureGroup();
         map.addLayer(drawnItems);
-
-        // 4) Tegneverktøy (tillat det du trenger)
         const drawControl = new L.Control.Draw({
           edit: { featureGroup: drawnItems, remove: true },
-          draw: {
-            marker: true,
-            polygon: true,
-            polyline: true,
-            rectangle: true,
-            circle: false,
-            circlemarker: false
-          }
+          draw: { marker:true, polygon:true, polyline:true, rectangle:true, circle:false, circlemarker:false }
         });
         map.addControl(drawControl);
 
-        // 5) Synk til skjult felt (GeoJSON FeatureCollection)
-        function syncGeoJsonField(){
+        const geoField = document.getElementById('GeometryGeoJson');
+        const latField = document.getElementById('Latitude');
+        const lngField = document.getElementById('Longitude');
+        const markerArrayField = document.getElementById('MarkerCoordinatesJson');
+
+        // 4) Hjelpere
+        function syncGeoJsonField() {
           const fc = drawnItems.toGeoJSON();
-          document.getElementById('GeometryGeoJson').value = JSON.stringify(fc);
+          geoField.value = JSON.stringify(fc);
+
+          // Samle ALLE markører
+          const markerCoords = [];
+          let firstMarkerLatLng = null;
+
+          drawnItems.eachLayer(l => {
+            if (l instanceof L.Marker) {
+              const p = l.getLatLng();
+              markerCoords.push([p.lat, p.lng]);
+              if (!firstMarkerLatLng) firstMarkerLatLng = p;
+            }
+          });
+
+          // Sett primære lat/lng
+          let lat = null, lng = null;
+          if (firstMarkerLatLng) {
+            lat = firstMarkerLatLng.lat; lng = firstMarkerLatLng.lng;
+          } else if (drawnItems.getLayers().length > 0) {
+            const b = drawnItems.getBounds().getCenter();
+            lat = b.lat; lng = b.lng;
+          }
+
+          if (latField && lngField) {
+            latField.value = (lat ?? '').toString();
+            lngField.value = (lng ?? '').toString();
+          }
+
+          // Lagre array med ALLE markør-koordinater
+          if (markerArrayField) {
+            markerArrayField.value = JSON.stringify(markerCoords);
+          }
+
+          // Readout
+          if (lat != null && lng != null) {
+            readout.textContent = `Primært punkt: ${lat.toFixed(6)}, ${lng.toFixed(6)}  •  Antall markører: ${markerCoords.length}`;
+          } else {
+            readout.textContent = `Ingen geometri enda. Tegn i kartet eller sett en markør.`;
+          }
         }
 
+        // 5) Events
         map.on(L.Draw.Event.CREATED, e => { drawnItems.addLayer(e.layer); syncGeoJsonField(); });
         map.on(L.Draw.Event.EDITED,  syncGeoJsonField);
         map.on(L.Draw.Event.DELETED, syncGeoJsonField);
 
-        // 6) (Valgfritt) last eksisterende GeoJSON dersom feltet har verdi (edit-scenarier)
-        const existing = document.getElementById('GeometryGeoJson').value;
-        if (existing) {
+        // Live readout før noe er tegnet
+        map.on('mousemove', e => {
+          if (!geoField.value) {
+            readout.textContent = `Peker: ${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
+          }
+        });
+
+        // 6) Last eksisterende (om du bruker skjemaet til redigering)
+        if (geoField.value) {
           try {
-            const gj = JSON.parse(existing);
+            const gj = JSON.parse(geoField.value);
             const layer = L.geoJSON(gj);
             layer.eachLayer(l => drawnItems.addLayer(l));
-            if (layer.getLayers().length > 0) map.fitBounds(layer.getBounds(), { padding: [20, 20] });
-          } catch (err) {
-            console.warn('Kunne ikke lese eksisterende GeoJSON', err);
-          }
+            if (layer.getLayers().length > 0) map.fitBounds(layer.getBounds(), { padding:[20,20] });
+          } catch {}
         }
+
+        // Init synk
+        syncGeoJsonField();
       </script>
     }
   </div>

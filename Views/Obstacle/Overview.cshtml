@@ -10,6 +10,42 @@
       <p><span class="font-semibold">Name:</span> @Model.ObstacleName</p>
       <p><span class="font-semibold">Height:</span> @Model.ObstacleHeight</p>
       <p><span class="font-semibold">Description:</span> @Model.ObstacleDescription</p>
+
+      <p><span class="font-semibold">Primary coordinates:</span>
+        @(Model.Latitude.HasValue && Model.Longitude.HasValue
+            ? $"{Model.Latitude.Value:F6}, {Model.Longitude.Value:F6}"
+            : "—")
+      </p>
+
+      <!-- NYTT: liste alle markør-koordinater -->
+      <div>
+        <span class="font-semibold">All marker coordinates:</span>
+        @{
+          var listText = "—";
+          if (!string.IsNullOrWhiteSpace(Model.MarkerCoordinatesJson))
+          {
+              try
+              {
+                  // MarkerCoordinatesJson er et JSON array [[lat,lng],[lat,lng],...]
+                  var coords = System.Text.Json.JsonSerializer.Deserialize<double[][]>(Model.MarkerCoordinatesJson!);
+                  if (coords != null && coords.Length > 0)
+                  {
+                      <ul class="list-disc list-inside text-sm mt-1">
+                      @for (int i = 0; i < coords.Length; i++)
+                      {
+                          var lat = coords[i][0];
+                          var lng = coords[i][1];
+                          <li>Marker @(i+1): @lat.ToString("F6", System.Globalization.CultureInfo.InvariantCulture), @lng.ToString("F6", System.Globalization.CultureInfo.InvariantCulture)</li>
+                      }
+                      </ul>
+                      listText = "";
+                  }
+              }
+              catch { /* ignorer parsing-feil */ }
+          }
+        }
+        @if (!string.IsNullOrEmpty(listText)) { @listText }
+      </div>
     </div>
 
     <!-- Kart som viser GeoJSON -->
@@ -27,6 +63,9 @@
         <input type="hidden" name="ObstacleHeight" value="@Model.ObstacleHeight" />
         <input type="hidden" name="ObstacleDescription" value="@Model.ObstacleDescription" />
         <input type="hidden" name="GeometryGeoJson" value="@Model.GeometryGeoJson" />
+        <input type="hidden" name="Latitude" value="@Model.Latitude" />
+        <input type="hidden" name="Longitude" value="@Model.Longitude" />
+        <input type="hidden" name="MarkerCoordinatesJson" value="@Model.MarkerCoordinatesJson" />
         <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
           Edit
         </button>
@@ -52,6 +91,12 @@
       } catch (err) {
         console.warn("Kunne ikke lese GeoJSON:", err);
       }
+    } else if (@(Model.Latitude.HasValue.ToString().ToLower()) && @(Model.Longitude.HasValue.ToString().ToLower())) {
+      // Dersom kun koordinater finnes
+      const lat = @Model.Latitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+      const lng = @Model.Longitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+      L.marker([lat, lng]).addTo(map);
+      map.setView([lat, lng], 14);
     }
   </script>
 }

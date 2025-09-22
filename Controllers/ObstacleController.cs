@@ -13,6 +13,7 @@ namespace FirstWebApplication.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult DataForm(ObstacleData obstacleData)
         {
             if (!ModelState.IsValid)
@@ -24,22 +25,22 @@ namespace FirstWebApplication.Controllers
 
         // ----- EDIT -----
 
-        // Vi laster Edit-skjemaet ved å POSTe hele modellen fra Overview (skåner oss for for lang querystring).
+        // Åpne Edit ved å POSTe hele modellen fra Overview (enkelt uten database)
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Edit(ObstacleData obstacleData)
         {
-            // Viser Edit-skjema med eksisterende verdier (inkl. GeoJSON)
             return View("Edit", obstacleData);
         }
 
         // Lagre endringer fra Edit-skjemaet og vis Overview igjen
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult EditSave(ObstacleData obstacleData)
         {
             if (!ModelState.IsValid)
                 return View("Edit", obstacleData);
 
-            // Tilbake til Overview med oppdatert modell
             return View("Overview", obstacleData);
         }
     }

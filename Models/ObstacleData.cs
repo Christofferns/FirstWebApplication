@@ -14,6 +14,14 @@ namespace FirstWebApplication.Models
         [StringLength(200, ErrorMessage = "Description must be at most 200 characters")]
         public string ObstacleDescription { get; set; } = string.Empty;
 
+        // GeoJSON FeatureCollection med det som tegnes i kartet
         public string? GeometryGeoJson { get; set; }
+
+        // Primære koordinater (første markør om den finnes, ellers senter av tegningen)
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+
+        // NYTT: Alle markør-koordinater som JSON-array: [[lat,lng],[lat,lng],...]
+        public string? MarkerCoordinatesJson { get; set; }
     }
 }
