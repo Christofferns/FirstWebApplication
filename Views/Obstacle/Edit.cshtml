@@ -1,0 +1,107 @@
+@model FirstWebApplication.Models.ObstacleData
+@{
+    ViewData["Title"] = "Edit Obstacle";
+}
+
+<main class="min-h-screen bg-gray-50">
+  <div class="mx-auto max-w-xl px-4 py-10 sm:py-16">
+    <h1 class="text-2xl sm:text-3xl font-semibold text-gray-900 mb-6">Edit Obstacle</h1>
+
+    <div asp-validation-summary="ModelOnly" class="mb-4 text-sm text-red-700"></div>
+
+    <form asp-action="EditSave" method="post" class="space-y-5 bg-white p-6 rounded-xl shadow">
+
+      <div>
+        <label asp-for="ObstacleName" class="block text-sm font-medium text-gray-700"></label>
+        <input asp-for="ObstacleName" class="mt-1 block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" />
+        <span asp-validation-for="ObstacleName" class="text-sm text-red-600"></span>
+      </div>
+
+      <div>
+        <label asp-for="ObstacleHeight" class="block text-sm font-medium text-gray-700"></label>
+        <input asp-for="ObstacleHeight" class="mt-1 block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" />
+        <span asp-validation-for="ObstacleHeight" class="text-sm text-red-600"></span>
+      </div>
+
+      <div>
+        <label asp-for="ObstacleDescription" class="block text-sm font-medium text-gray-700"></label>
+        <input asp-for="ObstacleDescription" class="mt-1 block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" />
+        <span asp-validation-for="ObstacleDescription" class="text-sm text-red-600"></span>
+      </div>
+
+      <!-- Kart (forhåndsutfylt fra GeometryGeoJson) -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Kart – rediger plasseringen</label>
+        <div id="map" class="mt-2 rounded-xl border border-gray-200" style="height:420px;"></div>
+      </div>
+
+      <!-- Skjult GeoJSON-felt -->
+      <input type="hidden" asp-for="GeometryGeoJson" id="GeometryGeoJson" />
+      <span asp-validation-for="GeometryGeoJson" class="text-sm text-red-600"></span>
+
+      <div class="flex gap-3">
+        <a asp-controller="Obstacle" asp-action="DataForm" class="inline-flex items-center justify-center rounded-lg border px-4 py-2 text-gray-700 hover:bg-gray-50">Cancel</a>
+        <button type="submit" class="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          Save changes
+        </button>
+      </div>
+    </form>
+
+    @section Scripts {
+      <partial name="_ValidationScriptsPartial" />
+
+      <script>
+        // Init kart
+        const map = L.map('map').setView([58.1467, 7.9956], 12);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 20,
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        const drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+
+        const drawControl = new L.Control.Draw({
+          edit: { featureGroup: drawnItems, remove: true },
+          draw: {
+            marker: true,
+            polygon: true,
+            polyline: true,
+            rectangle: true,
+            circle: false,
+            circlemarker: false
+          }
+        });
+        map.addControl(drawControl);
+
+        function syncGeoJsonField(){
+          const fc = drawnItems.toGeoJSON();
+          document.getElementById('GeometryGeoJson').value = JSON.stringify(fc);
+        }
+
+        map.on(L.Draw.Event.CREATED, e => { drawnItems.addLayer(e.layer); syncGeoJsonField(); });
+        map.on(L.Draw.Event.EDITED,  syncGeoJsonField);
+        map.on(L.Draw.Event.DELETED, syncGeoJsonField);
+
+        // Last eksisterende GeoJSON fra modellen
+        const existingStr = '@(Model.GeometryGeoJson ?? "")'.replace(/&quot;/g, '"');
+        if (existingStr) {
+          try {
+            const gj = JSON.parse(existingStr);
+            const layer = L.geoJSON(gj);
+            layer.eachLayer(l => drawnItems.addLayer(l));
+            if (layer.getLayers().length > 0) {
+              map.fitBounds(layer.getBounds(), { padding: [20, 20] });
+            }
+          } catch (err) {
+            console.warn('Kunne ikke lese eksisterende GeoJSON', err);
+          }
+        }
+
+        // Sørg for at skjult felt er synket ved initial last (i tilfelle bruker lagrer uten endringer)
+        syncGeoJsonField();
+      </script>
+    }
+  </div>
+</main>
