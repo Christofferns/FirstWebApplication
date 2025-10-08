@@ -1,13 +1,14 @@
-using MySqlConnector;
+using FirstWebApplication.Data;
+using FirstWebApplication.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Hent connection string fra appsettings eller miljø (Docker Compose setter miljøvariabel)
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? builder.Configuration["ConnectionStrings:DefaultConnection"];
-builder.Services.AddSingleton(new MySqlConnection(connectionString));
-
+// MVC
 builder.Services.AddControllersWithViews();
+
+// Dapper + repo
+builder.Services.AddSingleton<DapperContext>();
+builder.Services.AddScoped<ObstacleRepository>();
 
 var app = builder.Build();
 
@@ -19,13 +20,12 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthorization();
 
+// Sett gjerne Obstacle/Overview som startside:
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Obstacle}/{action=DataForm}/{id?}");
 
 app.Run();

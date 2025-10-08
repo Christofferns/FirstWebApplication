@@ -17,7 +17,6 @@
             : "—")
       </p>
 
-      <!-- NYTT: liste alle markør-koordinater -->
       <div>
         <span class="font-semibold">All marker coordinates:</span>
         @{
@@ -26,7 +25,6 @@
           {
               try
               {
-                  // MarkerCoordinatesJson er et JSON array [[lat,lng],[lat,lng],...]
                   var coords = System.Text.Json.JsonSerializer.Deserialize<double[][]>(Model.MarkerCoordinatesJson!);
                   if (coords != null && coords.Length > 0)
                   {
@@ -41,14 +39,13 @@
                       listText = "";
                   }
               }
-              catch { /* ignorer parsing-feil */ }
+              catch { }
           }
         }
         @if (!string.IsNullOrEmpty(listText)) { @listText }
       </div>
     </div>
 
-    <!-- Kart som viser GeoJSON -->
     <div class="mt-6">
       <label class="block text-sm font-medium text-gray-700 mb-2">Obstacle location</label>
       <div id="map-overview" class="rounded-xl border border-gray-200" style="height:420px;"></div>
@@ -57,7 +54,6 @@
     <div class="mt-6 flex gap-3">
       <a asp-controller="Obstacle" asp-action="DataForm" class="inline-flex items-center justify-center rounded-lg border px-4 py-2 text-gray-700 hover:bg-gray-50">Register another</a>
 
-      <!-- EDIT-knapp: Post hele modellen til Obstacle/Edit -->
       <form asp-controller="Obstacle" asp-action="Edit" method="post" class="contents">
         <input type="hidden" name="ObstacleName" value="@Model.ObstacleName" />
         <input type="hidden" name="ObstacleHeight" value="@Model.ObstacleHeight" />
@@ -75,6 +71,10 @@
 </main>
 
 @section Scripts {
+  <!-- Leaflet assets -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <script>
     const map = L.map('map-overview').setView([58.1467, 7.9956], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -92,7 +92,6 @@
         console.warn("Kunne ikke lese GeoJSON:", err);
       }
     } else if (@(Model.Latitude.HasValue.ToString().ToLower()) && @(Model.Longitude.HasValue.ToString().ToLower())) {
-      // Dersom kun koordinater finnes
       const lat = @Model.Latitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
       const lng = @Model.Longitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
       L.marker([lat, lng]).addTo(map);

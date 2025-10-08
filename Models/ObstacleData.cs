@@ -8,6 +8,8 @@ namespace FirstWebApplication.Models
         [StringLength(50, ErrorMessage = "Name must be at most 50 characters")]
         public string ObstacleName { get; set; } = string.Empty;
 
+        public int Id { get; set; } // Auto-increment fra DB
+
         [Range(1, 10000, ErrorMessage = "Height must be between 1 and 10,000")]
         public int ObstacleHeight { get; set; }
 

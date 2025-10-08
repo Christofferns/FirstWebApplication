@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/staupe/Desktop/FirstWebApplication/FirstWebApplication.csproj": {}
+    "/Users/staupe/Desktop/FirstWebApplication /FirstWebApplication.csproj": {}
   },
   "projects": {
-    "/Users/staupe/Desktop/FirstWebApplication/FirstWebApplication.csproj": {
+    "/Users/staupe/Desktop/FirstWebApplication /FirstWebApplication.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/staupe/Desktop/FirstWebApplication/FirstWebApplication.csproj",
+        "projectUniqueName": "/Users/staupe/Desktop/FirstWebApplication /FirstWebApplication.csproj",
         "projectName": "FirstWebApplication",
-        "projectPath": "/Users/staupe/Desktop/FirstWebApplication/FirstWebApplication.csproj",
+        "projectPath": "/Users/staupe/Desktop/FirstWebApplication /FirstWebApplication.csproj",
         "packagesPath": "/Users/staupe/.nuget/packages/",
-        "outputPath": "/Users/staupe/Desktop/FirstWebApplication/obj/",
+        "outputPath": "/Users/staupe/Desktop/FirstWebApplication /obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/staupe/.nuget/NuGet/NuGet.Config"
@@ -44,6 +44,14 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "Dapper": {
+              "target": "Package",
+              "version": "[2.1.66, )"
+            },
+            "MySql.Data": {
+              "target": "Package",
+              "version": "[9.4.0, )"
+            },
             "MySqlConnector": {
               "target": "Package",
               "version": "[2.4.0, )"

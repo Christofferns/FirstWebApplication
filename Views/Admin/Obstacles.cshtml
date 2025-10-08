@@ -1,0 +1,37 @@
+@model IEnumerable<FirstWebApplication.Models.ObstacleData>
+@using System.Globalization
+@using FirstWebApplication.Models
+@{
+    ViewData["Title"] = "Alle innmeldinger (Admin)";
+}
+
+<h2 class="mb-3">Alle innmeldinger (Admin)</h2>
+
+@if (!Model.Any())
+{
+  <div class="alert alert-info">Ingen innmeldinger.</div>
+}
+else
+{
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Navn</th>
+        <th>Høyde</th>
+        <th>Beskrivelse</th>
+      </tr>
+    </thead>
+    <tbody>
+    @foreach (var o in Model)
+    {
+      <tr>
+        <td>@o.Id</td>
+        <td>@o.ObstacleName</td>
+        <td>@o.ObstacleHeight.ToString("0.##", CultureInfo.InvariantCulture)</td>
+        <td>@o.ObstacleDescription</td>
+      </tr>
+    }
+    </tbody>
+  </table>
+}

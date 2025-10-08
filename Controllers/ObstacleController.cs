@@ -1,47 +1,49 @@
 using Microsoft.AspNetCore.Mvc;
 using FirstWebApplication.Models;
+using FirstWebApplication.Repositories;
 
 namespace FirstWebApplication.Controllers
 {
     public class ObstacleController : Controller
     {
+        private readonly ObstacleRepository _repo;
+        public ObstacleController(ObstacleRepository repo) => _repo = repo;
+
         [HttpGet]
-        public IActionResult DataForm()
-        {
-            // Tom modell ved første visning
-            return View(new ObstacleData());
-        }
+        public IActionResult DataForm() => View(new ObstacleData());
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult DataForm(ObstacleData obstacleData)
+        public async Task<IActionResult> DataForm(ObstacleData model)
         {
             if (!ModelState.IsValid)
-                return View(obstacleData);
+                return View(model);
 
-            // Ferdig utfylt -> vis Overview
-            return View("Overview", obstacleData);
+            try
+            {
+                var rows = await _repo.CreateAsync(model);
+                if (rows == 0)
+                {
+                    ModelState.AddModelError(string.Empty, "Ingenting ble lagret (0 rader).");
+                    return View(model);
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, "Feil ved lagring: " + ex.Message);
+                return View(model);
+            }
+
+            // ✅ Viser samme side som før (ikke Admin)
+            ViewBag.Saved = true; // valgfritt – for “lagret”-melding
+            return View("Overview", model);
         }
 
-        // ----- EDIT -----
-
-        // Åpne Edit ved å POSTe hele modellen fra Overview (enkelt uten database)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(ObstacleData obstacleData)
+        // Mulighet for å vise Overview direkte, om du ønsker å lenke dit
+        [HttpGet]
+        public IActionResult Overview(ObstacleData model)
         {
-            return View("Edit", obstacleData);
-        }
-
-        // Lagre endringer fra Edit-skjemaet og vis Overview igjen
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult EditSave(ObstacleData obstacleData)
-        {
-            if (!ModelState.IsValid)
-                return View("Edit", obstacleData);
-
-            return View("Overview", obstacleData);
+            return View(model);
         }
     }
 }
